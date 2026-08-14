@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Angular
+dist/
+.angular/
+.sass-cache/
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment and secrets
+.env
+.env.*
+*.pfx
+appsettings.*.local.json
+secrets.json
+
+# Logs and coverage
+*.log
+npm-debug.log*
+coverage/
+TestResults/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
