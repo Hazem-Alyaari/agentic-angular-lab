@@ -4,3 +4,25 @@ GET {{Agent.Api_HostAddress}}/api/health
 Accept: application/json
 
 ###
+
+POST {{Agent.Api_HostAddress}}/api/agent/run
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "threadId": "thread_demo",
+  "runId": "run_demo",
+  "state": {},
+  "messages": [
+    {
+      "id": "msg_user_1",
+      "role": "user",
+      "content": "Say hello"
+    }
+  ],
+  "tools": [],
+  "context": [],
+  "forwardedProps": {}
+}
+
+###

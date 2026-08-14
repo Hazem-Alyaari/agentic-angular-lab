@@ -6,24 +6,26 @@ This repository is intentionally starting small. The goal is to learn one layer 
 
 ## Current Status
 
-Phase 1 is in place: a local Angular frontend can call a simple ASP.NET Core Web API.
+Phase 2 is in place: Angular and ASP.NET Core exchange a raw AG-UI event stream over HTTP SSE.
 
 What works today:
 
 - Angular 20 application under `frontend/angular-app`
 - ASP.NET Core Web API under `backend/Agent.Api`
 - `GET /api/health` returns `{ "status": "ok" }`
+- `POST /api/agent/run` streams AG-UI events (`RUN_STARTED` → text message events → `RUN_FINISHED`)
+- Angular parses each AG-UI event and renders assistant text incrementally
 - Local development proxy so the Angular app can reach the API
 
-This is a connectivity foundation only. It is not an agent yet.
+This is protocol learning only. There is no LLM, tool calling, shared state, or generative UI yet.
+
+See `docs/learning-notes/phase-2-ag-ui-streaming.md` for a short walkthrough.
 
 ## Planned Learning Areas
 
 These are not implemented yet. The project will gradually explore:
 
-- AG-UI
-- streaming
-- agent communication
+- connecting a real agent / LLM behind AG-UI
 - tool calling
 - frontend tools
 - shared state
@@ -53,6 +55,13 @@ Health check:
 
 ```text
 GET http://localhost:5177/api/health
+```
+
+AG-UI run (SSE):
+
+```text
+POST http://localhost:5177/api/agent/run
+Accept: text/event-stream
 ```
 
 ### Frontend

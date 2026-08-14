@@ -1,8 +1,36 @@
 <main class="app">
   <h1>{{ title }}</h1>
+
   <p>
     Backend health:
     <strong>{{ healthStatus }}</strong>
   </p>
-  <router-outlet />
+
+  <form class="composer" (ngSubmit)="send()">
+    <input
+      name="prompt"
+      type="text"
+      [(ngModel)]="prompt"
+      placeholder="Say something..."
+      [disabled]="status === 'running'"
+      autocomplete="off"
+    />
+    <button type="submit" [disabled]="status === 'running' || !prompt.trim()">
+      Send
+    </button>
+  </form>
+
+  <p>
+    Status:
+    <strong>{{ status }}</strong>
+  </p>
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+
+  <section>
+    <h2>Assistant</h2>
+    <pre>{{ assistantText || '(waiting for TEXT_MESSAGE_CONTENT…)' }}</pre>
+  </section>
 </main>

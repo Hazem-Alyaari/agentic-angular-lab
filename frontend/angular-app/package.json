@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@ag-ui/core": "^0.0.58",
     "@angular/animations": "^20.3.28",
     "@angular/common": "^20.3.28",
     "@angular/compiler": "^20.3.28",

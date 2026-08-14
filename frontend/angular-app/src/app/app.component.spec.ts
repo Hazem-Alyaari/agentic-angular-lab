@@ -17,16 +17,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'Agentic Angular Lab' title`, () => {
+  it(`should have the AG-UI Streaming Lab title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('Agentic Angular Lab');
+    expect(app.title).toEqual('AG-UI Streaming Lab');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Agentic Angular Lab');
+    expect(compiled.querySelector('h1')?.textContent).toContain('AG-UI Streaming Lab');
   });
 });
