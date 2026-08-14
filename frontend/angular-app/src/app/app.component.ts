@@ -112,7 +112,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       default:
-        // Intentionally ignore events outside Phase 2.
+        // Intentionally ignore events outside the current learning phase.
         break;
     }
   }

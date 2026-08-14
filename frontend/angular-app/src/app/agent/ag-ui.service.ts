@@ -7,12 +7,14 @@ import {
 } from './ag-ui.types';
 
 /**
- * Minimal AG-UI HTTP+SSE client for Phase 2 learning.
+ * Minimal AG-UI HTTP+SSE client for protocol learning.
  *
  * Why not @ag-ui/client HttpAgent?
  * HttpAgent also manages message/state history and subscriber middleware.
- * For this phase we want the protocol path to stay visible:
+ * We keep the protocol path visible:
  * POST RunAgentInput → SSE frames → EventSchemas.parse → Observable event.
+ *
+ * This service is provider-agnostic: it never sees OpenAI/Claude/etc.
  */
 @Injectable({
   providedIn: 'root'

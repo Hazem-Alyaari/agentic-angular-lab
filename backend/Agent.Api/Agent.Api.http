@@ -17,7 +17,7 @@ Accept: text/event-stream
     {
       "id": "msg_user_1",
       "role": "user",
-      "content": "Say hello"
+      "content": "Explain AG-UI in one short paragraph."
     }
   ],
   "tools": [],

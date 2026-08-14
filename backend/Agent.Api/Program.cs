@@ -1,6 +1,8 @@
 using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
 using AGUI.Abstractions;
+using Agent.Api.Agents;
+using Agent.Api.Llm;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,30 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AGUIJsonSerializerContext.Default);
 });
+
+builder.Services.Configure<LlmOptions>(options =>
+{
+    builder.Configuration.GetSection(LlmOptions.SectionName).Bind(options);
+
+    options.ApiKey = FirstNonEmpty(
+        options.ApiKey,
+        builder.Configuration["LLM_API_KEY"],
+        Environment.GetEnvironmentVariable("LLM_API_KEY"),
+        Environment.GetEnvironmentVariable("OPENAI_API_KEY")) ?? string.Empty;
+
+    options.Model = FirstNonEmpty(
+        options.Model,
+        builder.Configuration["LLM_MODEL"],
+        Environment.GetEnvironmentVariable("LLM_MODEL")) ?? "gpt-4o-mini";
+
+    options.BaseUrl = FirstNonEmpty(
+        options.BaseUrl,
+        builder.Configuration["LLM_BASE_URL"],
+        Environment.GetEnvironmentVariable("LLM_BASE_URL"));
+});
+
+builder.Services.AddSingleton<ILlmProvider, OpenAiLlmProvider>();
+builder.Services.AddSingleton<AgentRunService>();
 
 builder.Services.AddCors(options =>
 {
@@ -37,62 +63,31 @@ if (!app.Environment.IsDevelopment())
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
-app.MapPost("/api/agent/run", (RunAgentInput input, CancellationToken cancellationToken) =>
+app.MapPost("/api/agent/run", (
+    RunAgentInput input,
+    AgentRunService agentRunService,
+    CancellationToken cancellationToken) =>
 {
-    var threadId = string.IsNullOrWhiteSpace(input.ThreadId)
-        ? Guid.NewGuid().ToString("N")
-        : input.ThreadId;
+    if (!AgentRunService.TryValidate(input, out var error))
+    {
+        return Results.BadRequest(new { error });
+    }
 
-    var runId = string.IsNullOrWhiteSpace(input.RunId)
-        ? Guid.NewGuid().ToString("N")
-        : input.RunId;
-
-    return TypedResults.ServerSentEvents(StreamAgUiEvents(threadId, runId, cancellationToken));
+    return TypedResults.ServerSentEvents(
+        WrapAsSseItems(agentRunService.RunAsync(input, cancellationToken), cancellationToken));
 });
 
 app.Run();
 
-static async IAsyncEnumerable<SseItem<BaseEvent>> StreamAgUiEvents(
-    string threadId,
-    string runId,
+static async IAsyncEnumerable<SseItem<BaseEvent>> WrapAsSseItems(
+    IAsyncEnumerable<BaseEvent> events,
     [EnumeratorCancellation] CancellationToken cancellationToken)
 {
-    // Phase 2: hardcoded AG-UI lifecycle — no LLM.
-    yield return new SseItem<BaseEvent>(new RunStartedEvent
+    await foreach (var evt in events.WithCancellation(cancellationToken))
     {
-        ThreadId = threadId,
-        RunId = runId
-    });
-
-    var messageId = Guid.NewGuid().ToString("N");
-
-    yield return new SseItem<BaseEvent>(new TextMessageStartEvent
-    {
-        MessageId = messageId,
-        Role = "assistant"
-    });
-
-    // Visible streaming: "Hello from AG-UI"
-    string[] chunks = ["Hello", " from", " AG-UI"];
-
-    foreach (var chunk in chunks)
-    {
-        await Task.Delay(450, cancellationToken);
-        yield return new SseItem<BaseEvent>(new TextMessageContentEvent
-        {
-            MessageId = messageId,
-            Delta = chunk
-        });
+        yield return new SseItem<BaseEvent>(evt);
     }
-
-    yield return new SseItem<BaseEvent>(new TextMessageEndEvent
-    {
-        MessageId = messageId
-    });
-
-    yield return new SseItem<BaseEvent>(new RunFinishedEvent
-    {
-        ThreadId = threadId,
-        RunId = runId
-    });
 }
+
+static string? FirstNonEmpty(params string?[] values) =>
+    values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
