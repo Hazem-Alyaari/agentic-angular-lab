@@ -12,4 +12,8 @@ public sealed class LlmOptions
 
     /// <summary>Optional OpenAI-compatible base URL.</summary>
     public string? BaseUrl { get; set; }
+
+    public int TimeoutSeconds { get; set; } = 120;
+
+    public int MaxToolIterations { get; set; } = 5;
 }

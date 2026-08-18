@@ -33,4 +33,21 @@
     <h2>Assistant</h2>
     <pre>{{ assistantText || '(waiting for TEXT_MESSAGE_CONTENT…)' }}</pre>
   </section>
+
+  @if (activities.length > 0) {
+    <section>
+      <h2>Agent Activity</h2>
+      <ul>
+        @for (activity of activities; track activity.toolCallId) {
+          <li>
+            @if (activity.status === 'calling') {
+              ⏳ Calling {{ activity.name }}...
+            } @else {
+              ✓ Called {{ activity.name }}
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  }
 </main>

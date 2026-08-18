@@ -2,7 +2,8 @@ namespace Agent.Api.Llm;
 
 public interface ILlmProvider
 {
-    IAsyncEnumerable<string> StreamAsync(
+    IAsyncEnumerable<LlmStreamEvent> StreamAsync(
         IReadOnlyList<LlmMessage> messages,
+        IReadOnlyList<LlmToolDefinition> tools,
         CancellationToken cancellationToken = default);
 }

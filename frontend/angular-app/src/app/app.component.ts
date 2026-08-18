@@ -6,12 +6,20 @@ import {
   type BaseEvent,
   type RunErrorEvent,
   type TextMessageContentEvent,
-  type TextMessageStartEvent
+  type TextMessageStartEvent,
+  type ToolCallResultEvent,
+  type ToolCallStartEvent
 } from '@ag-ui/core';
 import { Subscription } from 'rxjs';
 import { AgUiService } from './agent/ag-ui.service';
 
 type RunStatus = 'idle' | 'running' | 'error';
+
+interface ToolActivity {
+  toolCallId: string;
+  name: string;
+  status: 'calling' | 'done';
+}
 
 @Component({
   selector: 'app-root',
@@ -26,6 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
   status: RunStatus = 'idle';
   assistantText = '';
   errorMessage = '';
+  activities: ToolActivity[] = [];
   private currentMessageId: string | null = null;
   private runSubscription: Subscription | null = null;
 
@@ -57,6 +66,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.status = 'running';
     this.errorMessage = '';
     this.assistantText = '';
+    this.activities = [];
     this.currentMessageId = null;
 
     this.runSubscription = this.agUi.run(text).subscribe({
@@ -83,7 +93,9 @@ export class AppComponent implements OnInit, OnDestroy {
       case EventType.TEXT_MESSAGE_START: {
         const start = event as TextMessageStartEvent;
         this.currentMessageId = start.messageId;
-        this.assistantText = '';
+        if (this.assistantText.length > 0) {
+          this.assistantText += '\n';
+        }
         break;
       }
 
@@ -97,8 +109,34 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       case EventType.TEXT_MESSAGE_END:
-        // Message is complete; keep text for display.
         break;
+
+      case EventType.TOOL_CALL_START: {
+        const start = event as ToolCallStartEvent;
+        this.activities = [
+          ...this.activities,
+          {
+            toolCallId: start.toolCallId,
+            name: start.toolCallName,
+            status: 'calling'
+          }
+        ];
+        break;
+      }
+
+      case EventType.TOOL_CALL_ARGS:
+      case EventType.TOOL_CALL_END:
+        break;
+
+      case EventType.TOOL_CALL_RESULT: {
+        const result = event as ToolCallResultEvent;
+        this.activities = this.activities.map((activity) =>
+          activity.toolCallId === result.toolCallId
+            ? { ...activity, status: 'done' }
+            : activity
+        );
+        break;
+      }
 
       case EventType.RUN_FINISHED:
         this.status = 'idle';
@@ -112,7 +150,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       default:
-        // Intentionally ignore events outside the current learning phase.
         break;
     }
   }

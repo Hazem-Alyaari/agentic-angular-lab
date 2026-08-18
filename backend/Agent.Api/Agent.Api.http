@@ -17,7 +17,7 @@ Accept: text/event-stream
     {
       "id": "msg_user_1",
       "role": "user",
-      "content": "Explain AG-UI in one short paragraph."
+      "content": "How many annual leave days does Ahmed have remaining?"
     }
   ],
   "tools": [],

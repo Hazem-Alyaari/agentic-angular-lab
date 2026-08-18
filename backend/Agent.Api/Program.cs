@@ -2,7 +2,9 @@ using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
 using AGUI.Abstractions;
 using Agent.Api.Agents;
+using Agent.Api.Data;
 using Agent.Api.Llm;
+using Agent.Api.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +18,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.Configure<LlmOptions>(options =>
 {
     builder.Configuration.GetSection(LlmOptions.SectionName).Bind(options);
+    builder.Configuration.GetSection("OpenAI").Bind(options);
 
     options.ApiKey = FirstNonEmpty(
         options.ApiKey,
+        builder.Configuration["Llm:ApiKey"],
+        builder.Configuration["OpenAI:ApiKey"],
         builder.Configuration["LLM_API_KEY"],
         Environment.GetEnvironmentVariable("LLM_API_KEY"),
         Environment.GetEnvironmentVariable("OPENAI_API_KEY")) ?? string.Empty;
@@ -34,6 +39,10 @@ builder.Services.Configure<LlmOptions>(options =>
         Environment.GetEnvironmentVariable("LLM_BASE_URL"));
 });
 
+builder.Services.AddSingleton<MockEmployeeService>();
+builder.Services.AddSingleton<IAgentTool, GetEmployeeTool>();
+builder.Services.AddSingleton<IAgentTool, GetLeaveBalanceTool>();
+builder.Services.AddSingleton<ToolRegistry>();
 builder.Services.AddSingleton<ILlmProvider, OpenAiLlmProvider>();
 builder.Services.AddSingleton<AgentRunService>();
 

@@ -10,6 +10,11 @@ export {
   type TextMessageContentEvent,
   type TextMessageEndEvent,
   type TextMessageStartEvent,
+  type ToolCallArgsEvent,
+  type ToolCallEndEvent,
+  type ToolCallResultEvent,
+  type ToolCallStartEvent,
+  type RunErrorEvent,
   type RunFinishedEvent,
   type RunStartedEvent
 } from '@ag-ui/core';

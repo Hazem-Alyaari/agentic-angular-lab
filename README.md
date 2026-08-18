@@ -6,29 +6,29 @@ This repository is intentionally starting small. The goal is to learn one layer 
 
 ## Current Status
 
-Phase 3 is in place: Angular sends `RunAgentInput` over AG-UI SSE, and ASP.NET Core streams a real LLM response as AG-UI events.
+Phase 4 is in place: the backend can call **server-side tools** during an AG-UI run, then stream the model's final answer.
 
 What works today:
 
 - Angular 20 application under `frontend/angular-app`
 - ASP.NET Core Web API under `backend/Agent.Api`
 - `GET /api/health` returns `{ "status": "ok" }`
-- `POST /api/agent/run` streams AG-UI events from a real LLM (`ILlmProvider`)
-- Angular parses each AG-UI event and renders assistant text incrementally
-- Local development proxy so the Angular app can reach the API
+- `POST /api/agent/run` streams AG-UI events from a real LLM
+- Server-side tools `get_employee` and `get_leave_balance` over mock HR data
+- Angular observes `TOOL_CALL_*` events and still renders text incrementally
 
-There is still no tool calling, shared state, generative UI, RAG, or multi-agent orchestration.
+There is still no frontend tools, shared state, generative UI, RAG, or HITL.
 
 See:
 
 - `docs/learning-notes/phase-2-ag-ui-streaming.md`
 - `docs/learning-notes/phase-3-llm-streaming.md`
+- `docs/learning-notes/phase-4-server-tool-calling.md`
 
 ## Planned Learning Areas
 
 These are not implemented yet. The project will gradually explore:
 
-- tool calling
 - frontend tools
 - shared state
 - structured/generative UI
@@ -97,8 +97,10 @@ During local development, requests to `/api/*` are proxied to `http://localhost:
 agentic-angular-lab/
 ├── frontend/angular-app/     Angular application
 ├── backend/Agent.Api/        ASP.NET Core Web API
-│   ├── Agents/               AG-UI run lifecycle
-│   └── Llm/                  ILlmProvider + OpenAI implementation
+│   ├── Agents/               AG-UI run loop + ToolRegistry
+│   ├── Llm/                  ILlmProvider + OpenAI implementation
+│   ├── Tools/                get_employee, get_leave_balance
+│   └── Data/                 in-memory mock employees
 ├── docs/                     Notes and screenshots
 ├── README.md
 └── .gitignore
