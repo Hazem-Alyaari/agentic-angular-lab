@@ -6,7 +6,7 @@ This repository is intentionally starting small. The goal is to learn one layer 
 
 ## Current Status
 
-Phase 4 is in place: the backend can call **server-side tools** during an AG-UI run, then stream the model's final answer.
+Phase 5 is in place: the model can call **server tools** (ASP.NET Core) and one **frontend tool** (Angular Router) over raw AG-UI.
 
 What works today:
 
@@ -15,22 +15,23 @@ What works today:
 - `GET /api/health` returns `{ "status": "ok" }`
 - `POST /api/agent/run` streams AG-UI events from a real LLM
 - Server-side tools `get_employee` and `get_leave_balance` over mock HR data
-- Angular observes `TOOL_CALL_*` events and still renders text incrementally
+- Frontend tool `navigate_to_employee` advertised in `RunAgentInput.tools` and executed by Angular Router at `/employees/:id`
+- Frontend tool results resume the agent through official AG-UI interrupt + tool messages (not a custom `/api/tool-result`)
 
-There is still no frontend tools, shared state, generative UI, RAG, or HITL.
+There is still no generative UI, shared application state, HITL confirmation, RAG, or CopilotKit.
 
 See:
 
 - `docs/learning-notes/phase-2-ag-ui-streaming.md`
 - `docs/learning-notes/phase-3-llm-streaming.md`
 - `docs/learning-notes/phase-4-server-tool-calling.md`
+- `docs/learning-notes/phase-5-frontend-tools.md`
 
 ## Planned Learning Areas
 
 These are not implemented yet. The project will gradually explore:
 
-- frontend tools
-- shared state
+- shared frontend context/state
 - structured/generative UI
 - human-in-the-loop workflows
 
@@ -97,7 +98,7 @@ During local development, requests to `/api/*` are proxied to `http://localhost:
 agentic-angular-lab/
 ├── frontend/angular-app/     Angular application
 ├── backend/Agent.Api/        ASP.NET Core Web API
-│   ├── Agents/               AG-UI run loop + ToolRegistry
+│   ├── Agents/               AG-UI run loop + tool ownership + ToolRegistry
 │   ├── Llm/                  ILlmProvider + OpenAI implementation
 │   ├── Tools/                get_employee, get_leave_balance
 │   └── Data/                 in-memory mock employees

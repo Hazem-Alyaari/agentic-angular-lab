@@ -41,13 +41,23 @@
         @for (activity of activities; track activity.toolCallId) {
           <li>
             @if (activity.status === 'calling') {
-              ⏳ Calling {{ activity.name }}...
+              @if (activity.target === 'browser') {
+                ⏳ {{ activity.name }} — executing in browser
+              } @else {
+                ⏳ {{ activity.name }} — executing on server
+              }
             } @else {
-              ✓ Called {{ activity.name }}
+              @if (activity.target === 'browser') {
+                ✓ {{ activity.name }} — executed in browser
+              } @else {
+                ✓ {{ activity.name }} — executed on server
+              }
             }
           </li>
         }
       </ul>
     </section>
   }
+
+  <router-outlet />
 </main>

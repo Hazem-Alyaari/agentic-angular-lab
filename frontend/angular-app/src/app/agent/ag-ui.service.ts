@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
+import { FRONTEND_TOOLS } from './frontend-tools';
 import {
   EventSchemas,
   type BaseEvent,
+  type Message,
+  type ResumeEntry,
   type RunAgentInput
 } from './ag-ui.types';
 
@@ -22,23 +25,7 @@ import {
 export class AgUiService {
   private readonly endpoint = '/api/agent/run';
 
-  run(userText: string, threadId = this.createId('thread')): Observable<BaseEvent> {
-    const input: RunAgentInput = {
-      threadId,
-      runId: this.createId('run'),
-      state: {},
-      messages: [
-        {
-          id: this.createId('msg'),
-          role: 'user',
-          content: userText
-        }
-      ],
-      tools: [],
-      context: [],
-      forwardedProps: {}
-    };
-
+  run(input: RunAgentInput): Observable<BaseEvent> {
     return new Observable<BaseEvent>((subscriber) => {
       const controller = new AbortController();
 
@@ -46,6 +33,48 @@ export class AgUiService {
 
       return () => controller.abort();
     });
+  }
+
+  createUserRun(userText: string, threadId = this.createId('thread')): RunAgentInput {
+    return this.createRunInput(threadId, [
+      {
+        id: this.createId('msg'),
+        role: 'user',
+        content: userText
+      }
+    ]);
+  }
+
+  createContinuationRun(
+    threadId: string,
+    parentRunId: string,
+    messages: Message[],
+    resume: ResumeEntry[]
+  ): RunAgentInput {
+    return this.createRunInput(threadId, messages, parentRunId, resume);
+  }
+
+  createId(prefix: string): string {
+    return `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
+  }
+
+  private createRunInput(
+    threadId: string,
+    messages: Message[],
+    parentRunId?: string,
+    resume?: ResumeEntry[]
+  ): RunAgentInput {
+    return {
+      threadId,
+      runId: this.createId('run'),
+      parentRunId,
+      state: {},
+      messages,
+      tools: FRONTEND_TOOLS,
+      context: [],
+      forwardedProps: {},
+      resume
+    };
   }
 
   private async consumeSse(
@@ -139,9 +168,5 @@ export class AgUiService {
     }
 
     return remainder;
-  }
-
-  private createId(prefix: string): string {
-    return `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
   }
 }
